@@ -53,6 +53,7 @@ type
     procedure DibujarCelda(X, Y: integer);
     function GetColor(Numero: Variant): TColor;
     procedure SetPuntuacion;
+    function ExistenMovimientos: boolean;
   public
     { Public declarations }
   end;
@@ -110,6 +111,68 @@ begin
   SetPuntuacion;
 
   Estado := Partida;
+end;
+
+function TFMain.ExistenMovimientos: boolean;
+var
+  X: Integer;
+  Y: Integer;
+begin
+
+  result := false;
+
+  //
+  // Si existe una celda vacía, sí existen movimientos
+  //
+  for X := 1 to 4 do
+  begin
+
+    for Y := 1 to 4 do
+    begin
+
+      if VarIsNull(Tablero[X, Y]) then
+      begin
+
+        result := true;
+        exit;
+
+      end;
+
+    end;
+
+  end;
+
+  //
+  // Si hay 2 celdas contiguas iguales, sí existen movimientos
+  //
+  if (Tablero[1, 1] = Tablero[1, 2]) or
+     (Tablero[1, 2] = Tablero[1, 3]) or
+     (Tablero[1, 3] = Tablero[1, 4]) or
+     (Tablero[2, 1] = Tablero[2, 2]) or
+     (Tablero[2, 2] = Tablero[2, 3]) or
+     (Tablero[2, 3] = Tablero[2, 4]) or
+     (Tablero[3, 1] = Tablero[3, 2]) or
+     (Tablero[3, 2] = Tablero[3, 3]) or
+     (Tablero[3, 3] = Tablero[3, 4]) or
+     (Tablero[4, 1] = Tablero[4, 2]) or
+     (Tablero[4, 2] = Tablero[4, 3]) or
+     (Tablero[4, 3] = Tablero[4, 4]) or
+     //
+     (Tablero[1, 1] = Tablero[2, 1]) or
+     (Tablero[2, 1] = Tablero[3, 1]) or
+     (Tablero[3, 1] = Tablero[4, 1]) or
+     (Tablero[1, 2] = Tablero[2, 2]) or
+     (Tablero[2, 2] = Tablero[3, 2]) or
+     (Tablero[3, 2] = Tablero[4, 2]) or
+     (Tablero[1, 3] = Tablero[2, 3]) or
+     (Tablero[2, 3] = Tablero[3, 3]) or
+     (Tablero[3, 3] = Tablero[4, 3]) or
+     (Tablero[1, 4] = Tablero[2, 4]) or
+     (Tablero[2, 4] = Tablero[3, 4]) or
+     (Tablero[3, 4] = Tablero[4, 4])
+  then
+    result := true;
+
 end;
 
 procedure TFMain.FormKeyDown(Sender: TObject; var Key: Word;

@@ -73,7 +73,6 @@ object FMain: TFMain
     Top = 161
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -89,8 +88,7 @@ object FMain: TFMain
     Top = 161
     Width = 90
     Height = 90
-    Caption = '2'
-    Color = clWhite
+    Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -27
@@ -105,7 +103,6 @@ object FMain: TFMain
     Top = 161
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -121,7 +118,6 @@ object FMain: TFMain
     Top = 161
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -137,7 +133,6 @@ object FMain: TFMain
     Top = 259
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -153,7 +148,6 @@ object FMain: TFMain
     Top = 259
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -169,7 +163,6 @@ object FMain: TFMain
     Top = 259
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -185,7 +178,6 @@ object FMain: TFMain
     Top = 259
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -201,7 +193,6 @@ object FMain: TFMain
     Top = 356
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -217,7 +208,6 @@ object FMain: TFMain
     Top = 356
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -233,7 +223,6 @@ object FMain: TFMain
     Top = 356
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -249,7 +238,6 @@ object FMain: TFMain
     Top = 356
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -265,7 +253,6 @@ object FMain: TFMain
     Top = 453
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -281,7 +268,6 @@ object FMain: TFMain
     Top = 453
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -297,7 +283,6 @@ object FMain: TFMain
     Top = 453
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -313,7 +298,6 @@ object FMain: TFMain
     Top = 453
     Width = 90
     Height = 90
-    Caption = '2'
     Color = cl3DLight
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText

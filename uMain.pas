@@ -45,6 +45,9 @@ type
     Tablero: array[1..4, 1..4] of Variant;
     Puntuacion, MejorPuntuacion: Integer;
     Estado: TPartidaEstado;
+    Movido: boolean;
+    LastCell_X: integer;
+    LastCell_Y: integer;
 
     procedure Empezar;
     procedure InicializaTablero;
@@ -60,9 +63,6 @@ type
     function TieneValor(X, Y: Integer): boolean;
     procedure AgruparFila(NumFila: integer; Movimiento: TMovimiento);
     procedure AgruparColumna(NumColumna: integer; Movimiento: TMovimiento);
-    function ExisteMovimientoDireccion(Movimiento: TMovimiento): boolean;
-    function GetPatron(Ind: Integer; Movimiento: TMovimiento): string;
-    function ExistenCeldasIgualesContiguas(Ind: Integer; Movimiento: TMovimiento): boolean;
   public
     { Public declarations }
   end;
@@ -89,6 +89,7 @@ end;
 procedure TFMain.AgruparFila(NumFila: integer; Movimiento: TMovimiento);
 var
   X: integer;
+  Desplaz: integer;
   ValorCelda: Variant;
   ValorCeldaAnterior: Variant;
   PosCeldaValor: integer;
@@ -96,9 +97,15 @@ var
 begin
 
   if Movimiento = Derecha then
-    X := 4
+  begin
+    X := 4;
+    Desplaz := -1;
+  end
   else
+  begin
     X := 1;
+    Desplaz := 1;
+  end;
 
   ValorCeldaAnterior := Null;
 
@@ -114,6 +121,10 @@ begin
       Tablero[NumFila, X]             := Null;
       ValorCeldaAnterior := Null;
 
+      Puntuacion := Puntuacion + Tablero[Numfila, PosCeldaValor];
+
+      Movido := true;
+
     end
     else if ((not VarIsNull(ValorCelda)) and VarIsNull(ValorCeldaAnterior)) or ((ValorCelda <> ValorCeldaAnterior) and (not VarIsNull(ValorCelda)) and (not VarIsNull(ValorCeldaAnterior))) then
     begin
@@ -121,77 +132,29 @@ begin
       PosCeldaValor := X;
     end;
 
-    if Movimiento = Derecha then
-      X := X - 1
-    else
-      X := X + 1;
-
-    // lo dejé aquí intentando aplicar este bucle para izquierda y derecha
-    for I := 1 to 3 do
-    begin
-
-      for X := 4 downto 2 do
-      begin
-
-        if VarIsNull(Tablero[NumFila, X]) and (not VarIsNull(Tablero[NumFila, X-1])) then
-        begin
-          Tablero[NumFila, X]   := Tablero[NumFila, X-1];
-          Tablero[NumFila, X-1] := Null;
-        end;
-
-      end;
-
-    end;
+    X := X + Desplaz;
 
   end;
 
-  if Movimiento = Derecha then
+  for I := 1 to 3 do
   begin
-    {
-    ValorCeldaAnterior := Null;
 
-    for X := 4 downto 1 do
+    if Movimiento = Derecha then
+      X := 4
+    else
+      X := 1;
+
+    while ((X > 1) and (Movimiento = Derecha)) or ((X < 4) and (Movimiento = Izquierda)) do
     begin
 
-      ValorCelda := Tablero[NumFila, X];
-
-      if VarIsNull(ValorCelda) then
-        Continue;
-
-      if ((not VarIsNull(ValorCelda)) and VarIsNull(ValorCeldaAnterior)) or (ValorCelda <> ValorCeldaAnterior) then
+      if VarIsNull(Tablero[NumFila, X]) and (not VarIsNull(Tablero[NumFila, X + Desplaz])) then
       begin
-        ValorCeldaAnterior := ValorCelda;
-        PosCeldaValor := X;
-        Continue;
+        Tablero[NumFila, X]           := Tablero[NumFila, X + Desplaz];
+        Tablero[NumFila, X + Desplaz] := Null;
+        Movido := true;
       end;
 
-      if (ValorCelda = ValorCeldaAnterior) then
-      begin
-
-        Tablero[Numfila, PosCeldaValor] := ValorCelda*2;
-        Tablero[NumFila, X]             := Null;
-        ValorCeldaAnterior := Null;
-
-      end;
-
-    end;
-    }
-    //
-    // Desplazar los números a la derecha
-    //
-    for I := 1 to 3 do
-    begin
-
-      for X := 4 downto 2 do
-      begin
-
-        if VarIsNull(Tablero[NumFila, X]) and (not VarIsNull(Tablero[NumFila, X-1])) then
-        begin
-          Tablero[NumFila, X]   := Tablero[NumFila, X-1];
-          Tablero[NumFila, X-1] := Null;
-        end;
-
-      end;
+      X := X + Desplaz;
 
     end;
 
@@ -214,8 +177,17 @@ begin
   //
   Celda := TPanel(FindComponent(concat('Cell_', IntToStr(X), IntToStr(Y))));
 
+  Celda.BorderStyle := bsNone;
+  Celda.BevelInner  := bvNone;
+
   Celda.Caption := VarToStr(Tablero[X, Y]);
   Celda.Color   := GetColor(Tablero[X, Y]);
+
+  if (LastCell_X = X) and (LastCell_Y = Y) then
+  begin
+    Celda.BorderStyle := bsSingle;
+    Celda.BevelInner  := bvRaised;
+  end;
 
 end;
 
@@ -236,6 +208,8 @@ var
   Ind: Integer;
 begin
 
+  Movido := false;
+
   if (Movimiento = Arriba) or (Movimiento = Abajo) then
     for Ind := 1 to 4 do
       AgruparColumna(Ind, Movimiento);
@@ -244,12 +218,24 @@ begin
     for Ind := 1 to 4 do
       AgruparFila(Ind, Movimiento);
 
-  InicializaCelda;
-
-  if not ExistenMovimientos then
+  if Movido then
   begin
-    Estado := Derrota;
-    ShowMessage('No puedes realizar más movimientos');
+
+    SetPuntuacion;
+
+    InicializaCelda;
+
+    if not ExistenMovimientos then
+    begin
+      Estado := Derrota;
+      ShowMessage('No puedes realizar más movimientos');
+    end;
+
+  end
+  else
+  begin
+    LastCell_X := 0;
+    LastCell_Y := 0
   end;
 
 end;
@@ -263,72 +249,6 @@ begin
   SetPuntuacion;
 
   Estado := Partida;
-end;
-
-function TFMain.GetPatron(Ind: Integer; Movimiento: TMovimiento): string;
-var
-  Col: Integer;
-begin
-
-  result := '';
-
-  if Movimiento = Derecha then
-  begin
-
-    for Col := 1 to 4 do
-    begin
-
-      if VarIsNull(Tablero[Ind, Col]) then
-        result := concat(result, '-')
-      else
-        result := concat(result, 'X');
-
-    end;
-
-  end;
-
-end;
-
-function TFMain.ExisteMovimientoDireccion(Movimiento: TMovimiento): boolean;
-var
-  Row: Integer;
-  Patron: string;
-begin
-
-  result := false;
-
-  if Movimiento = Derecha then
-  begin
-
-    for Row := 1 to 4 do
-    begin
-
-      Patron := GetPatron(Row, Movimiento);
-
-      if not MatchStr(Patron, ['----', '---X', '--XX', '-XXX', 'XXXX']) or (ExistenCeldasIgualesContiguas(Row, Movimiento)) then
-      begin
-        result := true;
-        exit;
-      end;
-
-    end;
-
-  end;
-
-end;
-
-function TFMain.ExistenCeldasIgualesContiguas(Ind: Integer;
-  Movimiento: TMovimiento): boolean;
-var
-  Col: integer;
-begin
-
-  result := false;
-
-  if Movimiento = Derecha then
-    for Col := 4 downto 2 do
-      if (Tablero[Ind, Col] = Tablero[Ind, Col-1]) and (not VarIsNull(Tablero[Ind, Col])) then
-        result := true;
 end;
 
 function TFMain.ExistenMovimientos: boolean;
@@ -414,11 +334,8 @@ begin
     if Key = VK_RIGHT then
       Movimiento := Derecha;
 
-    if ExisteMovimientoDireccion(Movimiento) then
-    begin
-      EjecutaMovimiento(Movimiento);
-      DibujarTablero;
-    end;
+    EjecutaMovimiento(Movimiento);
+    DibujarTablero;
 
   end;
 
@@ -486,10 +403,10 @@ begin
 
   CeldaSel := CeldasVacias[RandomRange(0, LenArr - 1)];
 
-  X := StrToInt(copy(CeldaSel, 1, 1));
-  Y := StrToInt(copy(CeldaSel, 2, 1));
+  LastCell_X := StrToInt(copy(CeldaSel, 1, 1));
+  LastCell_Y := StrToInt(copy(CeldaSel, 2, 1));
 
-  Tablero[X, Y] := GetNuevoNumero;
+  Tablero[LastCell_X, LastCell_Y] := GetNuevoNumero;
 
 end;
 
@@ -502,6 +419,9 @@ begin
   for X := 1 to 4 do
     for Y := 1 to 4 do
       Tablero[X, Y] := Null;
+
+  LastCell_X := 0;
+  LastCell_Y := 0;
 
   InicializaCelda;
   InicializaCelda;

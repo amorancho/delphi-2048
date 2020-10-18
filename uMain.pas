@@ -39,6 +39,8 @@ type
     procedure FormShow(Sender: TObject);
     procedure Bt_EmpezarClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
 
@@ -56,6 +58,8 @@ type
     procedure DibujarTablero;
     procedure DibujarCelda(X, Y: integer);
     function GetColor(Numero: Variant): TColor;
+    function GetTextColor(Numero: Variant): TColor;
+    function GetTextSize(Numero: Variant): integer;
     procedure SetPuntuacion;
     function ExistenMovimientos: boolean;
     procedure EjecutaMovimiento(Movimiento: TMovimiento);
@@ -74,6 +78,7 @@ implementation
 
 uses
   Math,
+  Utils,
   StrUtils,
   System.Generics.Collections;
 
@@ -82,8 +87,82 @@ uses
 { TFMain }
 
 procedure TFMain.AgruparColumna(NumColumna: integer; Movimiento: TMovimiento);
+var
+  X: integer;
+  Desplaz: integer;
+  ValorCelda: Variant;
+  ValorCeldaAnterior: Variant;
+  PosCeldaValor: integer;
+  I: integer;
 begin
-  //
+
+  if Movimiento = Abajo then
+  begin
+    X := 4;
+    Desplaz := -1;
+  end
+  else
+  begin
+    X := 1;
+    Desplaz := 1;
+  end;
+
+  ValorCeldaAnterior := Null;
+
+  while ((X >= 1) and (Movimiento = Abajo)) or ((X <= 4) and (Movimiento = Arriba)) do
+  begin
+
+    ValorCelda := Tablero[X, NumColumna];
+
+    if (ValorCelda = ValorCeldaAnterior) and (not VarIsNull(ValorCelda)) then
+    begin
+
+      Tablero[PosCeldaValor, NumColumna] := ValorCelda*2;
+      Tablero[X, NumColumna]             := Null;
+      ValorCeldaAnterior                 := Null;
+
+      Puntuacion := Puntuacion + Tablero[PosCeldaValor, NumColumna];
+
+      if Puntuacion > MejorPuntuacion then
+        MejorPuntuacion := Puntuacion;
+
+      Movido := true;
+
+    end
+    else if ((not VarIsNull(ValorCelda)) and VarIsNull(ValorCeldaAnterior)) or ((ValorCelda <> ValorCeldaAnterior) and (not VarIsNull(ValorCelda)) and (not VarIsNull(ValorCeldaAnterior))) then
+    begin
+      ValorCeldaAnterior := ValorCelda;
+      PosCeldaValor := X;
+    end;
+
+    X := X + Desplaz;
+
+  end;
+
+  for I := 1 to 3 do
+  begin
+
+    if Movimiento = Abajo then
+      X := 4
+    else
+      X := 1;
+
+    while ((X > 1) and (Movimiento = Abajo)) or ((X < 4) and (Movimiento = Arriba)) do
+    begin
+
+      if VarIsNull(Tablero[X, NumColumna]) and (not VarIsNull(Tablero[X + Desplaz, NumColumna])) then
+      begin
+        Tablero[X, NumColumna]           := Tablero[X + Desplaz, NumColumna];
+        Tablero[X + Desplaz, NumColumna] := Null;
+        Movido := true;
+      end;
+
+      X := X + Desplaz;
+
+    end;
+
+  end;
+
 end;
 
 procedure TFMain.AgruparFila(NumFila: integer; Movimiento: TMovimiento);
@@ -122,6 +201,9 @@ begin
       ValorCeldaAnterior := Null;
 
       Puntuacion := Puntuacion + Tablero[Numfila, PosCeldaValor];
+
+      if Puntuacion > MejorPuntuacion then
+        MejorPuntuacion := Puntuacion;
 
       Movido := true;
 
@@ -164,7 +246,12 @@ end;
 
 procedure TFMain.Bt_EmpezarClick(Sender: TObject);
 begin
-  Empezar;
+
+  if Estado = Partida then
+    if MessageDlg('¿Está seguro que sea iniciar una nueva partida?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+      Empezar;
+
+  ActiveControl := nil;
 end;
 
 procedure TFMain.DibujarCelda(X, Y: integer);
@@ -180,8 +267,10 @@ begin
   Celda.BorderStyle := bsNone;
   Celda.BevelInner  := bvNone;
 
-  Celda.Caption := VarToStr(Tablero[X, Y]);
-  Celda.Color   := GetColor(Tablero[X, Y]);
+  Celda.Caption    := VarToStr(Tablero[X, Y]);
+  Celda.Color      := GetColor(Tablero[X, Y]);
+  Celda.Font.Color := GetTextColor(Tablero[X, Y]);
+  Celda.Font.Size  := GetTextSize(Tablero[X, Y]);
 
   if (LastCell_X = X) and (LastCell_Y = Y) then
   begin
@@ -227,6 +316,7 @@ begin
 
     if not ExistenMovimientos then
     begin
+      DibujarTablero;
       Estado := Derrota;
       ShowMessage('No puedes realizar más movimientos');
     end;
@@ -249,12 +339,24 @@ begin
   SetPuntuacion;
 
   Estado := Partida;
+
 end;
 
 function TFMain.ExistenMovimientos: boolean;
 var
   X: Integer;
   Y: Integer;
+
+  function GetValor(X, Y, Desp_X, Desp_Y: integer): integer;
+  begin
+
+    if ((X + Desp_X) = 0) or ((X + Desp_X) = 5) or ((Y + Desp_Y) = 0) or ((Y + Desp_Y) = 5) then
+      result := -1
+    else
+      result := Tablero[X + Desp_X, Y + Desp_Y];
+
+  end;
+
 begin
 
   result := false;
@@ -280,6 +382,24 @@ begin
 
   end;
 
+  for X := 1 to 4 do
+  begin
+
+    for Y := 1 to 4 do
+    begin
+
+      if (Tablero[X, Y] = GetValor(X, Y, -1, 0)) or
+         (Tablero[X, Y] = GetValor(X, Y, 1,  0)) or
+         (Tablero[X, Y] = GetValor(X, Y,  0, -1)) or
+         (Tablero[X, Y] = GetValor(X, Y,  0,  1))
+      then
+        result := true;
+
+    end;
+
+  end;
+
+  {
   //
   // Si hay 2 celdas contiguas iguales, sí existen movimientos (TODO: hacerlo por algoritmo)
   //
@@ -310,6 +430,65 @@ begin
      (Tablero[3, 4] = Tablero[4, 4])
   then
     result := true;
+  }
+end;
+
+procedure TFMain.FormClose(Sender: TObject; var Action: TCloseAction);
+var
+  BestScoreFile: TStringList;
+  FileName: string;
+begin
+
+  FileName := 'BestScore.txt';
+
+  BestScoreFile := TStringList.Create;
+  try
+
+    BestScoreFile.LineBreak := '';
+    BestScoreFile.Text := MejorPuntuacion.ToString;
+    BestScoreFile.SaveToFile(FileName);
+
+  finally
+    BestScoreFile.Free;
+  end;
+
+end;
+
+procedure TFMain.FormCreate(Sender: TObject);
+var
+  BestScoreFile: TStringList;
+  FileName: string;
+begin
+
+  FileName := 'BestScore.txt';
+
+  BestScoreFile := TStringList.Create;
+  try
+
+    BestScoreFile.LineBreak := '';
+
+    //
+    // Si no existe el fichero de BestScore lo creamos
+    //
+    if not FileExists(FileName) then
+    begin
+
+      BestScoreFile.Text := '0';
+      BestScoreFile.SaveToFile(FileName);
+      MejorPuntuacion := 0;
+
+    end
+    else
+    begin
+
+      BestScoreFile.LoadFromFile(FileName);
+      MejorPuntuacion := StrToInt(BestScoreFile.Text);
+
+    end;
+
+  finally
+    BestScoreFile.Free;
+  end;
 
 end;
 
@@ -349,14 +528,21 @@ end;
 function TFMain.GetColor(Numero: Variant): TColor;
 begin
 
-  if VarIsNull(Numero) then
-    result := cl3DLight
-  else if Numero = 2 then
-    result := clWhite
-  else if Numero = 4 then
-    result := clInfoBk
+  case Nvl(Numero, 0) of
+     0: result   := cl3DLight;
+     2: result   := RGB(238, 228, 218);
+     4: result   := RGB(237, 224, 200);
+     8: result   := RGB(242, 177, 121);
+    16: result   := RGB(245, 149, 99);
+    32: result   := RGB(246, 124, 95);
+    64: result   := RGB(246, 94, 59);
+    128: result  := RGB(237, 207, 114);
+    256: result  := RGB(237, 204, 97);
+    512: result  := RGB(237, 200, 80);
+    1024: result := RGB(237, 197, 63);
   else
-     result := clLime;
+    result := RGB(237, 194, 46);
+  end;
 
 end;
 
@@ -367,6 +553,28 @@ begin
     result := 4
   else
     result := 2;
+
+end;
+
+function TFMain.GetTextColor(Numero: Variant): TColor;
+begin
+
+  if Nvl(Numero, 0) < 8 then
+    result := RGB(119, 110, 101)
+  else
+    result := RGB(249, 246, 242);
+
+end;
+
+function TFMain.GetTextSize(Numero: Variant): integer;
+begin
+
+ if (Nvl(Numero, 0) > 0) and (Nvl(Numero, 0) < 128) then
+   result := 30
+ else if (Nvl(Numero, 0) >= 128) and (Nvl(Numero, 0) < 1024) then
+   result := 26
+ else
+   result := 20;
 
 end;
 
@@ -425,32 +633,13 @@ begin
 
   InicializaCelda;
   InicializaCelda;
-  {
-  Tablero[1, 1] := Null;
-  Tablero[1, 2] := Null;
-  Tablero[1, 3] := 2;
-  Tablero[1, 4] := 8;
-  //
-  Tablero[2, 1] := Null;
-  Tablero[2, 2] := Null;
-  Tablero[2, 3] := Null;
-  Tablero[2, 4] := 4;
-  //
-  Tablero[3, 1] := Null;
-  Tablero[3, 2] := Null;
-  Tablero[3, 3] := 2;
-  Tablero[3, 4] := 4;
-  //
-  Tablero[4, 1] := Null;
-  Tablero[4, 2] := Null;
-  Tablero[4, 3] := Null;
-  Tablero[4, 4] := Null;
-  }
+
 end;
 
 procedure TFMain.SetPuntuacion;
 begin
   Pn_Puntuacion.Caption := Puntuacion.ToString;
+  Pn_Record.Caption     := MejorPuntuacion.ToString;
 end;
 
 function TFMain.TieneValor(X, Y: Integer): boolean;

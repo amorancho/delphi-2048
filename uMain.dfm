@@ -15,6 +15,8 @@ object FMain: TFMain
   KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
+  OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   PixelsPerInch = 96
@@ -345,7 +347,7 @@ object FMain: TFMain
     Width = 142
     Height = 31
     BevelOuter = bvNone
-    Caption = '23880'
+    Caption = '0'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -21
